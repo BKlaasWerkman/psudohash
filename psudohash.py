@@ -4,6 +4,7 @@
 # https://github.com/t3l3machus
 
 import argparse, sys, itertools
+import concurrent.futures
 
 # Colors
 MAIN = '\033[38;5;50m'
@@ -536,48 +537,49 @@ def main():
 	else:
 		
 		open(outfile, "w").close()
-		
-		for word in keywords:
-			print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
-			mutability = check_mutability(word.lower())
-					
-			# Produce case mutations
-			print(f' ├─ Producing character case-based transformations... ')
-			caseMutationsHandler(word.lower(), mutability)	
-			
-			if mutability:
-				# Produce char substitution mutations
-				print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
-				trans = evalTransformations(word.lower())
-				mutations_handler(word, trans[0], trans[1])
-				
-			else:
-				print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
 
-			# Append numbering
-			if args.append_numbering:
-				print(f' ├─ Appending numbering to each word mutation... ')
-				append_numbering()
+		with concurrent.futures.ProcessPoolExecutor() as executor:
+			for word in keywords:
+				print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
+				mutability = check_mutability(word.lower())
+					
+				# Produce case mutations
+				print(f' ├─ Producing character case-based transformations... ')
+				caseMutationsHandler(word.lower(), mutability)	
 			
-			# Handle years
-			if args.years:
-				print(f' ├─ Appending year patterns after each word mutation... ')
-				mutate_years()
-			
-			# Append common paddings		
-			if args.common_paddings_after or args.custom_paddings_only:
-				print(f' ├─ Appending common paddings after each word mutation... ')
-				append_paddings_after()
+				if mutability:
+					# Produce char substitution mutations
+					print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
+					trans = evalTransformations(word.lower())
+					mutations_handler(word, trans[0], trans[1])
 				
-			if args.common_paddings_before:
-				print(f' ├─ Appending common paddings before each word mutation... ')
-				append_paddings_before()
+				else:
+					print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
+
+				# Append numbering
+				if args.append_numbering:
+					print(f' ├─ Appending numbering to each word mutation... ')
+					append_numbering()
 			
-			basic_mutations = []
-			mutations_cage = []
-			print(f' └─ Done!')
+				# Handle years
+				if args.years:
+					print(f' ├─ Appending year patterns after each word mutation... ')
+					mutate_years()
+			
+				# Append common paddings		
+				if args.common_paddings_after or args.custom_paddings_only:
+					print(f' ├─ Appending common paddings after each word mutation... ')
+					append_paddings_after()
+				
+				if args.common_paddings_before:
+					print(f' ├─ Appending common paddings before each word mutation... ')
+					append_paddings_before()
+			
+				basic_mutations = []
+				mutations_cage = []
+				print(f' └─ Done!')
 		
-		print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
+			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
 			
 
 if __name__ == '__main__':
